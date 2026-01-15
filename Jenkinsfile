@@ -1,10 +1,6 @@
 pipeline {
   agent any
 
-  tools {
-    jdk 'temurin-17'
-  }
-
   environment {
     ANDROID_SDK_ROOT = "${env.JENKINS_HOME}\\android-sdk"
     ANDROID_HOME     = "${env.JENKINS_HOME}\\android-sdk"
@@ -73,3 +69,4 @@ pipeline {
     }
   }
 }
+
