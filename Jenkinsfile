@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  tools {
+    jdk 'temurin-17'
+  }
+
   environment {
     ANDROID_SDK_ROOT = "${env.JENKINS_HOME}\\android-sdk"
     ANDROID_HOME     = "${env.JENKINS_HOME}\\android-sdk"
@@ -19,37 +23,34 @@ pipeline {
       steps {
         bat '''
         if not exist "%ANDROID_SDK_ROOT%" (
-          echo Creating Android SDK directory
           mkdir "%ANDROID_SDK_ROOT%"
         )
 
         if not exist "%ANDROID_SDK_ROOT%\\cmdline-tools\\latest" (
-          echo Downloading Android SDK Command Line Tools...
           curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-win-11076708_latest.zip
-
           tar -xf cmdline-tools.zip
-
-          if not exist "%ANDROID_SDK_ROOT%\\cmdline-tools" (
-            mkdir "%ANDROID_SDK_ROOT%\\cmdline-tools"
-          )
-
+          mkdir "%ANDROID_SDK_ROOT%\\cmdline-tools"
           move cmdline-tools "%ANDROID_SDK_ROOT%\\cmdline-tools\\latest"
-        ) else (
-          echo Android SDK Command Line Tools already present
         )
         '''
       }
     }
 
-    stage('Accept Licenses & Install SDK') {
+    stage('Accept ALL SDK Licenses') {
       steps {
         bat '''
-        echo Accepting licenses and installing SDK packages...
+        echo y | "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" --licenses
+        '''
+      }
+    }
 
-        echo y | "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" ^
+    stage('Install Required SDK Packages') {
+      steps {
+        bat '''
+        "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" ^
           "platform-tools" ^
-          "platforms;android-34" ^
-          "build-tools;34.0.0"
+          "platforms;android-35" ^
+          "build-tools;35.0.0"
         '''
       }
     }
@@ -57,7 +58,6 @@ pipeline {
     stage('Build') {
       steps {
         bat '''
-        echo Starting Gradle build...
         gradlew build
         '''
       }
@@ -73,4 +73,3 @@ pipeline {
     }
   }
 }
-
