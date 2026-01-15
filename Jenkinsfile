@@ -1,75 +1,27 @@
 pipeline {
-  agent any
-
-  environment {
-    ANDROID_SDK_ROOT = "${env.JENKINS_HOME}\\android-sdk"
-    ANDROID_HOME     = "${env.JENKINS_HOME}\\android-sdk"
-    SDKMANAGER       = "${env.JENKINS_HOME}\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager.bat"
-  }
-
-  stages {
-
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    agent any
+    environment {
+        // Definim la ruta on has instal·lat l'SDK d'Android
+        ANDROID_HOME = 'C:\\android-sdk'
+        // Afegim les eines al PATH per si Gradle les necessita directament
+        PATH = "${env.ANDROID_HOME}\\cmdline-tools\\latest\\bin;${env.ANDROID_HOME}\\platform-tools;${env.PATH}"
     }
-
-    stage('Prepare Android SDK') {
-      steps {
-        bat '''
-        if not exist "%ANDROID_SDK_ROOT%" (
-          mkdir "%ANDROID_SDK_ROOT%"
-        )
-
-        if not exist "%ANDROID_SDK_ROOT%\\cmdline-tools\\latest" (
-          curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-win-11076708_latest.zip
-          tar -xf cmdline-tools.zip
-          mkdir "%ANDROID_SDK_ROOT%\\cmdline-tools"
-          move cmdline-tools "%ANDROID_SDK_ROOT%\\cmdline-tools\\latest"
-        )
-        '''
-      }
+ 
+    stages {
+        stage('Checkout & Build') {
+            steps {
+                ws('C:/jk/pruebaBackstagejenkins') {
+                    // Checkout del codi
+                    checkout scm
+                    // Corregir permisos o configuracions de rutes llargues en Windows
+                    bat 'git config core.longpaths true'
+                    // Creem un fitxer local.properties dinàmicament si no existeix
+                    // Això indica a Gradle exactament on és l'SDK
+                    bat "echo sdk.dir=${env.ANDROID_HOME.replace('\\', '/')} > local.properties"
+                    // Execució del build
+                    bat 'gradlew.bat build'
+                }
+            }
+        }
     }
-
-    stage('Install SDK Licenses') {
-      steps {
-        bat '''
-        if not exist "%ANDROID_SDK_ROOT%\\licenses" (
-          mkdir "%ANDROID_SDK_ROOT%\\licenses"
-        )
-
-        xcopy /E /I /Y "C:\\android-licenses\\licenses" "%ANDROID_SDK_ROOT%\\licenses"
-        '''
-      }
-    }
-
-    stage('Install SDK Packages') {
-      steps {
-        bat '''
-        "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" ^
-          "platform-tools" ^
-          "platforms;android-35" ^
-          "build-tools;35.0.0"
-        '''
-      }
-    }
-
-    stage('Build') {
-      steps {
-        bat '''
-        gradlew build
-        '''
-      }
-    }
-  }
-
-  post {
-    success {
-      echo 'Android build completed successfully'
-    }
-    failure {
-      echo 'Android build failed'
-    }
-  }
 }
