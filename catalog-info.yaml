@@ -23,7 +23,8 @@ metadata:
       icon: build
 
 spec:
-  type: mobile-app
+  type: service
   lifecycle: experimental
   owner: group:developers
   system: openshift
+
