@@ -1,11 +1,6 @@
 pipeline {
   agent any
 
-  tools {
-    // Asegúrate de tener este JDK configurado en Jenkins
-    jdk 'temurin-17'
-  }
-
   environment {
     ANDROID_SDK_ROOT = "${env.JENKINS_HOME}\\android-sdk"
     ANDROID_HOME     = "${env.JENKINS_HOME}\\android-sdk"
@@ -78,3 +73,4 @@ pipeline {
     }
   }
 }
+
