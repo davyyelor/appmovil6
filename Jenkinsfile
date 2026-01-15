@@ -1,29 +1,17 @@
-pipeline {
-  agent any
+stage('Checkout & Build') {
+  steps {
+    ws('C:/jk/pruebaBackstagejenkins') {
 
-  environment {
-    ANDROID_HOME     = 'C:\\Users\\delorzagabilondo\\AppData\\Local\\Android\\Sdk'
-    ANDROID_SDK_ROOT = 'C:\\Users\\delorzagabilondo\\AppData\\Local\\Android\\Sdk'
-    PATH = "${env.ANDROID_HOME}\\cmdline-tools\\latest\\bin;" +
-           "${env.ANDROID_HOME}\\platform-tools;" +
-           "${env.PATH}"
-  }
+      checkout scm
 
-  stages {
-    stage('Checkout & Build') {
-      steps {
-        ws('C:/jk/pruebaBackstagejenkins') {
+      bat 'git config core.longpaths true'
 
-          checkout scm
+      bat '''
+      powershell -Command ^
+        "Set-Content -Path local.properties -Value 'sdk.dir=C:/Users/delorzagabilondo/AppData/Local/Android/Sdk' -NoNewline"
+      '''
 
-          bat 'git config core.longpaths true'
-
-          // Indicamos explícitamente a Gradle dónde está el SDK
-          bat "echo sdk.dir=${env.ANDROID_HOME.replace('\\', '/')} > local.properties"
-
-          bat 'gradlew.bat build'
-        }
-      }
+      bat 'gradlew.bat build'
     }
   }
 }
