@@ -32,15 +32,19 @@ pipeline {
       }
     }
 
-    stage('Accept ALL SDK Licenses') {
+    stage('Install SDK Licenses') {
       steps {
         bat '''
-        echo y | "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" --licenses
+        if not exist "%ANDROID_SDK_ROOT%\\licenses" (
+          mkdir "%ANDROID_SDK_ROOT%\\licenses"
+        )
+
+        xcopy /E /I /Y "C:\\android-licenses\\licenses" "%ANDROID_SDK_ROOT%\\licenses"
         '''
       }
     }
 
-    stage('Install Required SDK Packages') {
+    stage('Install SDK Packages') {
       steps {
         bat '''
         "%SDKMANAGER%" --sdk_root="%ANDROID_SDK_ROOT%" ^
@@ -69,4 +73,3 @@ pipeline {
     }
   }
 }
-
