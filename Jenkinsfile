@@ -1,17 +1,56 @@
-stage('Checkout & Build') {
-  steps {
-    ws('C:/jk/pruebaBackstagejenkins') {
+pipeline {
+  agent any
 
-      checkout scm
+  environment {
+    ANDROID_HOME     = 'C:\\Users\\delorzagabilondo\\AppData\\Local\\Android\\Sdk'
+    ANDROID_SDK_ROOT = 'C:\\Users\\delorzagabilondo\\AppData\\Local\\Android\\Sdk'
+    PATH = "${env.ANDROID_HOME}\\cmdline-tools\\latest\\bin;" +
+           "${env.ANDROID_HOME}\\platform-tools;" +
+           "${env.PATH}"
+  }
 
-      bat 'git config core.longpaths true'
+  stages {
 
-      bat '''
-      powershell -Command ^
-        "Set-Content -Path local.properties -Value 'sdk.dir=C:/Users/delorzagabilondo/AppData/Local/Android/Sdk' -NoNewline"
-      '''
+    stage('Checkout') {
+      steps {
+        ws('C:/jk/pruebaBackstagejenkins') {
+          checkout scm
+          bat 'git config core.longpaths true'
+        }
+      }
+    }
 
-      bat 'gradlew.bat build'
+    stage('Configure Android SDK') {
+      steps {
+        ws('C:/jk/pruebaBackstagejenkins') {
+
+          // Crear local.properties SIN espacios finales (FIX DEFINITIVO)
+          bat '''
+          powershell -Command ^
+            "Set-Content -Path local.properties -Value 'sdk.dir=C:/Users/delorzagabilondo/AppData/Local/Android/Sdk' -NoNewline"
+          '''
+
+          // Verificación explícita (opcional pero recomendable)
+          bat 'type local.properties'
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        ws('C:/jk/pruebaBackstagejenkins') {
+          bat 'gradlew.bat build'
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Android build completed successfully'
+    }
+    failure {
+      echo 'Android build failed'
     }
   }
 }
