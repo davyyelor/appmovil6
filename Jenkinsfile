@@ -39,7 +39,7 @@ pipeline {
     stage('Build') {
       steps {
         ws('C:/jk/pruebaBackstagejenkins') {
-          bat 'gradlew.bat build'
+          bat 'gradlew.bat assembleDebug'
         }
       }
     }
@@ -54,6 +54,7 @@ pipeline {
     }
   }
 }
+
 
 
 
